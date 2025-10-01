@@ -161,20 +161,6 @@ class MinHeap:
         self.delete(out)
         return out
 
-    def heapify(self, i, n):
-        smallest = i
-        left = 2 * i + 1
-        right = left + 1
-
-        if left < n and self.heap[left] < self.heap[smallest]:
-            smallest = left
-        if right < n and self.heap[right] < self.heap[smallest]:
-            smallest = right
-        if smallest != i:
-            self.heap[i], self.heap[smallest] = self.heap[smallest], self.heap[i]
-            self.heapify(smallest, n)
-
-
 def dijkstra_heap(V, adj, src):
     pq = MinHeap()
 
@@ -274,7 +260,7 @@ def time_comparision(n, p, trials=3):
 
         # Heap
         t2 = time.perf_counter()
-        dijkstra_heap(V, E, 0)
+        dijkstra_heap(len(V), E, 0)
         t3 = time.perf_counter()
         times_heap.append(t3 - t2)
 
