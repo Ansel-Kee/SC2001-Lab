@@ -87,56 +87,44 @@ def test(V, E):
     t = time.time()-t
     return t
 
-# runs = 50
+runs = 50
 
-# v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
+v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
 
-# v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
-# v_times = []
-# for i in v_values:
-#     avg = 0
-#     for _ in range(runs):
-#         avg += test(i, i*2)
-#     v_times.append(avg/runs)
+v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
+v_times = []
+for i in v_values:
+    avg = 0
+    for _ in range(runs):
+        avg += test(i, i*2)
+    v_times.append(avg/runs)
 
-# plt.figure()
-# plt.plot(v_values, v_times, marker="o")
-# plt.xlabel("|V| (n)")
-# plt.ylabel("Mean time (s)")
-# plt.title("Dijkstra (array min): Time vs |V|")
-# plt.legend()
-# plt.tight_layout()
-# plt.savefig("time vs v (heap).png")
-# plt.close()
+plt.figure()
+plt.plot(v_values, v_times, marker="o")
+plt.xlabel("|V| (n)")
+plt.ylabel("Mean time (s)")
+plt.title("Dijkstra (array min): Time vs |V|")
+plt.legend()
+plt.tight_layout()
+plt.savefig("time vs v (heap).png")
+plt.close()
 
-# e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 40000, 50000]
-# e_times = []
-# for i in e_values:
-#     avg = 0
-#     for _ in range(runs):
-#         avg += test(200, i)
-#     e_times.append(avg/runs)
+e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 40000, 50000]
+e_times = []
+for i in e_values:
+    avg = 0
+    for _ in range(runs):
+        avg += test(200, i)
+    e_times.append(avg/runs)
 
-# plt.figure()
-# plt.plot(e_values, e_times, marker="o")
-# plt.xlabel("|E| (n)")
-# plt.ylabel("Mean time (s)")
-# plt.title("Dijkstra (array min): Time vs |E|")
-# plt.legend()
-# plt.tight_layout()
-# plt.savefig("time vs e (heap).png")
-# plt.close()
+plt.figure()
+plt.plot(e_values, e_times, marker="o")
+plt.xlabel("|E| (n)")
+plt.ylabel("Mean time (s)")
+plt.title("Dijkstra (array min): Time vs |E|")
+plt.legend()
+plt.tight_layout()
+plt.savefig("time vs e (heap).png")
+plt.close()
 
-def constructAdj(edges, V):
-    
-    # adj[u] = list of [v, wt]
-    adj = [[] for _ in range(V)]
 
-    for edge in edges:
-        u, v, wt = edge
-        adj[u].append([v, wt])
-        adj[v].append([u, wt])
-
-    return adj
-edges =[[0, 1, 4], [0, 2, 8], [1, 4, 6], [2, 3, 2], [3, 4, 10]]
-print(dijkstra(5, constructAdj(edges, 5)))
