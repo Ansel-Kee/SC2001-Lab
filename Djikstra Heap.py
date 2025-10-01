@@ -101,9 +101,9 @@ def test(V, E):
     t = time.time()-t
     return t
 
-runs = 100
+runs = 50
 
-v_values = [100, 200, 400, 800, 1600, 3200, 6400]
+v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
 v_times = []
 for i in v_values:
     avg = 0
@@ -121,12 +121,12 @@ plt.tight_layout()
 plt.savefig("time vs v (heap).png")
 plt.close()
 
-e_values = [100, 200, 400, 800, 1600, 3200, 6400]
+e_values = [999, 1500, 2000, 3000, 4000, 6400, 12800]
 e_times = []
 for i in e_values:
     avg = 0
     for _ in range(runs):
-        avg += test(i//2, i)
+        avg += test(1000, i)
     e_times.append(avg/runs)
 
 plt.figure()
