@@ -109,7 +109,7 @@ plt.tight_layout()
 plt.savefig("time vs v (heap).png")
 plt.close()
 
-e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 19900, 20000]
+e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 19900]
 e_times = []
 for i in e_values:
     avg = 0
