@@ -90,13 +90,11 @@ def test(V, E):
 runs = 50
 
 v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
-
-v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
 v_times = []
 for i in v_values:
     avg = 0
     for _ in range(runs):
-        avg += test(i, i*2)
+        avg += test(i, (v_values[0]**2-v_values[0])//2)
     v_times.append(avg/runs)
 
 plt.figure()
