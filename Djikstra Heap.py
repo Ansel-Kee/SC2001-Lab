@@ -53,8 +53,7 @@ def dijkstra(V, adj):
     dist[0] = 0
 
     while pq.size():
-        u = pq.pop()[1]
-
+        pos, u = pq.pop()
         for x in adj[u]:
             v, weight = x[0], x[1]
 
@@ -64,12 +63,11 @@ def dijkstra(V, adj):
 
     return dist
 
-
-def test(V, E):
-
+def make_graph(V, E):
     adj = [[] for _ in range(V)]
+    unvisited = [i for i in range(V)]
     pairs = {i:[j for j in range(V) if j != i] for i in range(V)}
-    for i in range(E):
+    for i in range(E-V):
         start = random.choice(list(pairs.keys()))
         end = random.choice(pairs[start])
         weight = random.randint(1, 10)
@@ -82,9 +80,43 @@ def test(V, E):
             pairs.pop(start, None)
         if len(pairs[end]) == 0:
             pairs.pop(end, None)
+        if start in unvisited:
+            unvisited.remove(start)
+        if end in unvisited:
+            unvisited.remove(end)
+    for i in unvisited:
+        end = random.choice(i)
+        weight = random.randint(1, 10)
+        adj[i].append([end, weight])
+        adj[end].append([i, weight])
+        pairs[start].remove(end)
+        pairs[end].remove(start)
+        if len(pairs[start]) == 0:
+            pairs.pop(start, None)
+        if len(pairs[end]) == 0:
+            pairs.pop(end, None)
+    for _ in range(V-len(unvisited)):
+        start = random.choice(list(pairs.keys()))
+        end = random.choice(pairs[start])
+        weight = random.randint(1, 10)
+        adj[start].append([end, weight])
+        adj[end].append([start, weight])
+
+        pairs[start].remove(end)
+        pairs[end].remove(start)
+        if len(pairs[start]) == 0:
+            pairs.pop(start, None)
+        if len(pairs[end]) == 0:
+            pairs.pop(end, None)
+    return adj
+
+def test(V, E):
+
+    adj = make_graph(V, E)
     t = time.time()
     dijkstra(V, adj)
     t = time.time()-t
+    
     return t
 
 runs = 50
@@ -104,7 +136,7 @@ plt.ylabel("Mean time (s)")
 plt.title("Dijkstra (array min): Time vs |V|")
 plt.legend()
 plt.tight_layout()
-plt.savefig("time vs v (heap).png")
+plt.savefig("time vs v (heap) test.png")
 plt.close()
 
 e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 19900]
