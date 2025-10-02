@@ -4,51 +4,76 @@ import time
 
 
 # A
-def dijkstra(V, E, start):
-    V=set(V)
-    d = {node: float('inf') for node in V}
-    pi = {node: None for node in V}
-    S = set()
-    d[start] = 0
-    while len(S) < len(V):
-        unvisited = V - S
-        u = min(unvisited, key=lambda node: d[node])
-        if d[u] == float('inf'):
+def dijkstra(A, start):
+    n = len(A)    #|V|
+    d = [float('inf')] * n
+    pi = [None] * n
+    visited = [False] * n
+    d[start] = 0.0
+
+    for _ in range(n):
+        # Extract-min over unvisited vertices (linear |V|)
+        u = -1
+        best = float('inf')
+        for i in range(n):
+            if not visited[i] and d[i] < best:
+                u = i
+                best = d[i]
+        if u == -1:  # break on unreachable
             break
-        S.add(u)
-        for v, w in E[u]:
-            if d[u] + w < d[v]:
-                d[v] = d[u] + w
-                pi[v] = u
+
+        visited[u] = True
+
+        # Relax neighbours u -> v
+        Au = A[u]
+        du = d[u]
+        for v in range(n):
+            w = Au[v]
+            if not visited[v] and w != float('inf'):
+                alt = du + w
+                if alt < d[v]:
+                    d[v] = alt
+                    pi[v] = u
     return d, pi
 
 
-def make_graph(n, p, seed=0):
-    random.seed(seed)
-    V = list(range(n))
-    E = {u: [] for u in V}
-    m = 0
-    for i in range(n):
-        for j in range(n):
-            if i == j:
-                continue
-            if random.random() < p:
-                w = random.randint(1, 10)
-                E[i].append((j, float(w)))
-                m += 1
-    return V, E, m
 
-def time_trial(n, p, trials=3):
+def make_matrix(n, p, seed=0, w_low=1, w_high=10):
+    random.seed(seed)
+    A = [[float('inf')] * n for _ in range(n)]
+    for i in range(n):
+        A[i][i] = 0.0
+
+    nodes = list(range(n))
+    random.shuffle(nodes)
+    for i in range(1, n):
+        u = nodes[i]
+        v = nodes[random.randrange(0, i)]  # connect to a previous node
+        w = float(random.randint(w_low, w_high))
+        A[u][v] = A[v][u] = w
+
+    # 2) Add extra edges with prob p (avoid duplicates)
+    m = 2 * (n - 1)  # we count both directions
+    for i in range(n):
+        for j in range(i + 1, n):
+            if A[i][j] == float('inf') and random.random() < p:
+                w = float(random.randint(w_low, w_high))
+                A[i][j] = A[j][i] = w
+                m += 2
+    return A, m
+
+
+def time_trial(n, p, trials=10):
     ts,ms = [],[]
     for t in range(trials):
-        V, E, m = make_graph(n, p, seed=100+t)
+        A, m = make_matrix(n, p, seed=100+t)
         ms.append(m)
         t0 = time.perf_counter()
-        dijkstra(V, E, start=0)
+        dijkstra(A, start=0)
         t1 = time.perf_counter()
         ts.append(t1 - t0)
-        mean_t = sum(ts)/len(ts)
-        m_avg = sum(ms)/len(ms)
+    mean_t = sum(ts)/len(ts)
+    m_avg = sum(ms)/len(ms)
     return mean_t, m_avg
 
 def experiment():
@@ -206,9 +231,9 @@ def test(V, E):
     return t
 
 
-runs = 100
+runs = 50
 
-v_values = [100, 200, 400, 800, 1600, 3200, 6400]
+v_values = [100, 200, 400, 800, 1200, 1600, 2000]
 v_times = []
 for i in v_values:
     avg = 0
@@ -221,12 +246,12 @@ plt.plot(v_values, v_times, marker="o")
 plt.xlabel("|V| (n)")
 plt.ylabel("Mean time (s)")
 plt.title("Dijkstra (array min): Time vs |V|")
-plt.legend()
+#plt.legend()
 plt.tight_layout()
 plt.savefig("time vs v (heap).png")
 plt.close()
 
-e_values = [100, 200, 400, 800, 1600, 3200, 6400]
+e_values = [100, 200, 400, 800, 1200, 1600, 2000]
 e_times = []
 for i in e_values:
     avg = 0
@@ -239,28 +264,42 @@ plt.plot(e_values, e_times, marker="o")
 plt.xlabel("|E| (n)")
 plt.ylabel("Mean time (s)")
 plt.title("Dijkstra (array min): Time vs |E|")
-plt.legend()
+#plt.legend()
 plt.tight_layout()
 plt.savefig("time vs e (heap).png")
 plt.close()
 
 
-#C
-def time_comparision(n, p, trials=3):
-    times_array, times_heap, ms = [], [], []
-    for t in range(trials):
-        V, E, m = make_graph(n, p, seed=100+t)
-        ms.append(m)
+def matrix_to_adj(A):
+    """Convert adjacency matrix to adjacency list for dijkstra_heap."""
+    n = len(A)
+    adj = [[] for _ in range(n)]
+    for u in range(n):
+        row = A[u]
+        for v in range(n):
+            w = row[v]
+            if u != v and w != float('inf'):
+                adj[u].append([v, w])
+    return adj
 
+#C
+def time_comparision(n, p, trials=10):
+    times_array, times_heap, ms = [], [], []
+
+
+    for t in range(trials):
+        A, m = make_matrix(n, p, seed=100+t)
+        ms.append(m)
+        E = matrix_to_adj(A)
         # Array
         t0 = time.perf_counter()
-        dijkstra(V, E, start=0)
+        dijkstra(A, start=0)
         t1 = time.perf_counter()
         times_array.append(t1 - t0)
 
         # Heap
         t2 = time.perf_counter()
-        dijkstra_heap(len(V), E, 0)
+        dijkstra_heap(len(A), E, 0)
         t3 = time.perf_counter()
         times_heap.append(t3 - t2)
 
@@ -269,7 +308,7 @@ def time_comparision(n, p, trials=3):
             sum(ms)/len(ms))
 
 def experiment_comparision():
-    sizes = [100, 200, 400, 800, 1600, 3200, 6400]
+    sizes = [100, 200, 400, 800, 1200, 1600, 2000]
     ps = [0.05, 0.1, 0.2, 0.4]
     rows = []
     for p in ps:
