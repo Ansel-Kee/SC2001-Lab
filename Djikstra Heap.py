@@ -1,6 +1,8 @@
 import random
 import time
 import matplotlib.pyplot as plt
+import numpy as np
+
 class MinHeap:
     def __init__(self):
         self.heap = []
@@ -84,17 +86,19 @@ def make_graph(V, E):
             unvisited.remove(start)
         if end in unvisited:
             unvisited.remove(end)
+
     for i in unvisited:
-        end = random.choice(i)
+        end = random.choice(pairs[i])
         weight = random.randint(1, 10)
         adj[i].append([end, weight])
         adj[end].append([i, weight])
-        pairs[start].remove(end)
-        pairs[end].remove(start)
-        if len(pairs[start]) == 0:
-            pairs.pop(start, None)
+        pairs[i].remove(end)
+        pairs[end].remove(i)
+        if len(pairs[i]) == 0:
+            pairs.pop(i, None)
         if len(pairs[end]) == 0:
             pairs.pop(end, None)
+
     for _ in range(V-len(unvisited)):
         start = random.choice(list(pairs.keys()))
         end = random.choice(pairs[start])
@@ -128,17 +132,28 @@ for i in v_values:
     for _ in range(runs):
         avg += test(i, (v_values[0]**2-v_values[0])//2)
     v_times.append(avg/runs)
+    print(i)
 
-plt.figure()
-plt.plot(v_values, v_times, marker="o")
-plt.xlabel("|V| (n)")
-plt.ylabel("Mean time (s)")
-plt.title("Dijkstra (array min): Time vs |V|")
-plt.legend()
-plt.tight_layout()
+logs = np.log(v_values).tolist()
+func = [(v_values[i]+((v_values[0]**2-v_values[0])//2))*logs[i] for i in range(len(logs))]
+print(func, len(func))
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel("|V| (n)")
+ax1.set_ylabel("Mean time (s)")
+ax1.plot(v_values, v_times, color=color)
+
+ax2 = ax1.twinx()  # instantiate a second Axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.get_yaxis().set_visible(False)
+ax2.plot(v_values, func, color=color)
+
+fig.tight_layout()
 plt.savefig("time vs v (heap) test.png")
 plt.close()
-
+runs = 200
 e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 19900]
 e_times = []
 for i in e_values:
@@ -146,15 +161,27 @@ for i in e_values:
     for _ in range(runs):
         avg += test(200, i)
     e_times.append(avg/runs)
+    print(i)
 
-plt.figure()
-plt.plot(e_values, e_times, marker="o")
-plt.xlabel("|E| (n)")
-plt.ylabel("Mean time (s)")
-plt.title("Dijkstra (array min): Time vs |E|")
-plt.legend()
-plt.tight_layout()
-plt.savefig("time vs e (heap).png")
+logs = [np.log(200).tolist()]*len(e_values)
+# print(logs)
+func = [(200+e_values[i])*logs[i] for i in range(len(logs))]
+print(func)
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel("|E| (n)")
+ax1.set_ylabel("Mean time (s)")
+ax1.plot(e_values, e_times, color=color)
+
+ax2 = ax1.twinx()  # instantiate a second Axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.get_yaxis().set_visible(False)
+ax2.plot(e_values, func, color=color)
+
+fig.tight_layout()
+plt.savefig("time vs e (heap) test.png")
 plt.close()
 
 

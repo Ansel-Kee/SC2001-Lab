@@ -206,13 +206,11 @@ def dijkstra_heap(V, adj, src):
 
     return dist
 
-
-def test(V, E):
-    src = 0
-
+def make_adjacency_list(V, E):
     adj = [[] for _ in range(V)]
-    pairs = {i: [j for j in range(V) if j != i] for i in range(V)}
-    for i in range(E):
+    unvisited = [i for i in range(V)]
+    pairs = {i:[j for j in range(V) if j != i] for i in range(V)}
+    for i in range(E-V):
         start = random.choice(list(pairs.keys()))
         end = random.choice(pairs[start])
         weight = random.randint(1, 10)
@@ -225,50 +223,44 @@ def test(V, E):
             pairs.pop(start, None)
         if len(pairs[end]) == 0:
             pairs.pop(end, None)
+        if start in unvisited:
+            unvisited.remove(start)
+        if end in unvisited:
+            unvisited.remove(end)
+
+    for i in unvisited:
+        end = random.choice(pairs[i])
+        weight = random.randint(1, 10)
+        adj[i].append([end, weight])
+        adj[end].append([i, weight])
+        pairs[i].remove(end)
+        pairs[end].remove(i)
+        if len(pairs[i]) == 0:
+            pairs.pop(i, None)
+        if len(pairs[end]) == 0:
+            pairs.pop(end, None)
+
+    for _ in range(V-len(unvisited)):
+        start = random.choice(list(pairs.keys()))
+        end = random.choice(pairs[start])
+        weight = random.randint(1, 10)
+        adj[start].append([end, weight])
+        adj[end].append([start, weight])
+
+        pairs[start].remove(end)
+        pairs[end].remove(start)
+        if len(pairs[start]) == 0:
+            pairs.pop(start, None)
+        if len(pairs[end]) == 0:
+            pairs.pop(end, None)
+    return adj
+
+def test(V, E):
+    adj = make_adjacency_list(V, E)
     t = time.time()
-    dijkstra_heap(V, adj, src)
+    dijkstra_heap(V, adj, 0)
     t = time.time() - t
     return t
-
-
-runs = 50
-
-v_values = [100, 200, 400, 800, 1200, 1600, 2000]
-v_times = []
-for i in v_values:
-    avg = 0
-    for _ in range(runs):
-        avg += test(i, i * 2)
-    v_times.append(avg / runs)
-
-plt.figure()
-plt.plot(v_values, v_times, marker="o")
-plt.xlabel("|V| (n)")
-plt.ylabel("Mean time (s)")
-plt.title("Dijkstra (array min): Time vs |V|")
-#plt.legend()
-plt.tight_layout()
-plt.savefig("time vs v (heap).png")
-plt.close()
-
-e_values = [100, 200, 400, 800, 1200, 1600, 2000]
-e_times = []
-for i in e_values:
-    avg = 0
-    for _ in range(runs):
-        avg += test(i // 2, i)
-    e_times.append(avg / runs)
-
-plt.figure()
-plt.plot(e_values, e_times, marker="o")
-plt.xlabel("|E| (n)")
-plt.ylabel("Mean time (s)")
-plt.title("Dijkstra (array min): Time vs |E|")
-#plt.legend()
-plt.tight_layout()
-plt.savefig("time vs e (heap).png")
-plt.close()
-
 
 def matrix_to_adj(A):
     """Convert adjacency matrix to adjacency list for dijkstra_heap."""
