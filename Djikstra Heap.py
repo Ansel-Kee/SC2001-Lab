@@ -10,12 +10,17 @@ class MinHeap:
     def push(self, val):
         self.heap.append(val)
         i = len(self.heap) - 1
-        while i > 0 and self.heap[(i - 1) // 2] > self.heap[i]:
+        while i > 0 and self.heap[(i - 1) // 2][1] > self.heap[i][1]:
             self.heap[i], self.heap[(i - 1) // 2] = self.heap[(i - 1) // 2], self.heap[i]
             i = (i - 1) // 2
 
     def size(self):
         return len(self.heap)
+
+    def pop(self):
+        out = self.heap[0]
+        self.delete(out)
+        return out
 
     def delete(self, value):
         i = -1
@@ -31,9 +36,9 @@ class MinHeap:
             left = 2 * i + 1
             right = left + 1
             smallest = i
-            if left < len(self.heap) and self.heap[left] < self.heap[smallest]:
+            if left < len(self.heap) and self.heap[left][1] < self.heap[smallest][1]:
                 smallest = left
-            if right < len(self.heap) and self.heap[right] < self.heap[smallest]:
+            if right < len(self.heap) and self.heap[right][1] < self.heap[smallest][1]:
                 smallest = right
             if smallest != i:
                 self.heap[i], self.heap[smallest] = self.heap[smallest], self.heap[i]
@@ -41,10 +46,7 @@ class MinHeap:
             else:
                 break
 
-    def pop(self):
-        out = self.heap[0]
-        self.delete(out)
-        return out
+    
 
 def dijkstra(V, adj):
     pq = MinHeap()
@@ -53,7 +55,7 @@ def dijkstra(V, adj):
 
     pq.push([0, 0])
     dist[0] = 0
-
+    parent = [None]*V
     while pq.size():
         pos, u = pq.pop()
         for x in adj[u]:
@@ -61,9 +63,10 @@ def dijkstra(V, adj):
 
             if dist[v] > dist[u] + weight:
                 dist[v] = dist[u] + weight
+                parent[v] = pos
                 pq.push([dist[v], v])
 
-    return dist
+    return dist, parent
 
 def make_graph(V, E):
     adj = [[] for _ in range(V)]
@@ -122,7 +125,6 @@ def test(V, E):
     t = time.time()-t
     
     return t
-
 runs = 50
 
 v_values = [200, 400, 800, 1600, 3200, 6400, 12800]
@@ -130,12 +132,12 @@ v_times = []
 for i in v_values:
     avg = 0
     for _ in range(runs):
-        avg += test(i, (v_values[0]**2-v_values[0])//2)
+        avg += test(i, 10*i)
     v_times.append(avg/runs)
     print(i)
-
+print(v_times)
 logs = np.log(v_values).tolist()
-func = [(v_values[i]+((v_values[0]**2-v_values[0])//2))*logs[i] for i in range(len(logs))]
+func = [(v_values[i]+10*i)*logs[i] for i in range(len(logs))]
 print(func, len(func))
 fig, ax1 = plt.subplots()
 
@@ -144,7 +146,7 @@ ax1.set_xlabel("|V| (n)")
 ax1.set_ylabel("Mean time (s)")
 ax1.plot(v_values, v_times, color=color)
 
-ax2 = ax1.twinx()  # instantiate a second Axes that shares the same x-axis
+ax2 = ax1.twinx()
 
 color = 'tab:blue'
 ax2.get_yaxis().set_visible(False)
@@ -153,7 +155,7 @@ ax2.plot(v_values, func, color=color)
 fig.tight_layout()
 plt.savefig("time vs v (heap) test.png")
 plt.close()
-runs = 200
+runs = 50
 e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 19900]
 e_times = []
 for i in e_values:
@@ -164,7 +166,6 @@ for i in e_values:
     print(i)
 
 logs = [np.log(200).tolist()]*len(e_values)
-# print(logs)
 func = [(200+e_values[i])*logs[i] for i in range(len(logs))]
 print(func)
 fig, ax1 = plt.subplots()
@@ -174,8 +175,16 @@ ax1.set_xlabel("|E| (n)")
 ax1.set_ylabel("Mean time (s)")
 ax1.plot(e_values, e_times, color=color)
 
-ax2 = ax1.twinx()  # instantiate a second Axes that shares the same x-axis
-
+ax2 = ax1.twinx()
+runs = 50
+e_values = [1000, 1500, 2000, 3000, 4000, 6400, 12800, 19900]
+e_times = []
+for i in e_values:
+    avg = 0
+    for _ in range(runs):
+        avg += test(500, i)
+    e_times.append(avg/runs)
+    print(i)
 color = 'tab:blue'
 ax2.get_yaxis().set_visible(False)
 ax2.plot(e_values, func, color=color)
